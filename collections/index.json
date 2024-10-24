@@ -42,7 +42,7 @@
         },
         "/login": {
             "put": {
-                "summary": "Create new user",
+                "summary": "Log user in",
                 "responses": {
                     "200": {
                         "description": "User logged in, access token granted",
@@ -54,6 +54,9 @@
                                 }
                             }
                         }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/InvalidRequest"
                     },
                     "404": {
                         "description": "Set if any of provided user credentials is incorrect",
@@ -73,16 +76,6 @@
                     }
                 }
             }
-        },
-        "/logout": {
-            "put": {
-                "summary": "Log out user, clear access token",
-                "responses": {
-                    "200": {
-                        "description": "User logged out, access token cleared"
-                    }
-                }
-            }
         }
     },
     "components": {
@@ -93,6 +86,9 @@
                     "application/json": {
                         "schema": {
                             "$ref": "#/components/schemas/Error"
+                        },
+                        "example": {
+                            "msg": "Request contains missing values"
                         }
                     }
                 }
@@ -105,8 +101,8 @@
                             "$ref": "#/components/schemas/Error"
                         },
                         "example": {
-                    "msg": "Service is currenly unavailable"
-                }
+                            "msg": "Service is currenly unavailable"
+                        }
                     }
                 }
             }
