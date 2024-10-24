@@ -1,0 +1,138 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "version": "0.1.0",
+        "title": "Rust Authentication API",
+        "description": "User authentication"
+    },
+    "paths": {
+        "/signup": {
+            "post": {
+                "summary": "Create new user",
+                "responses": {
+                    "201": {
+                        "description": "User created, access token granted",
+                        "headers": {
+                            "Set-Cookie": {
+                                "description": "Sets access token cookie for user authentication",
+                                "schema": {
+                                    "$ref": "#/components/schemas/AccessToken"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/InvalidRequest"
+                    },
+                    "409": {
+                        "description": "User with entered email already exists",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/InternalServerError"
+                    }
+                }
+            }
+        },
+        "/login": {
+            "put": {
+                "summary": "Create new user",
+                "responses": {
+                    "200": {
+                        "description": "User logged in, access token granted",
+                        "headers": {
+                            "Set-Cookie": {
+                                "description": "Sets access token cookie for user authentication",
+                                "schema": {
+                                    "$ref": "#/components/schemas/AccessToken"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Set if any of provided user credentials is incorrect",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                },
+                                "example": {
+                                    "msg": "Invalid email or password"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/InternalServerError"
+                    }
+                }
+            }
+        },
+        "/logout": {
+            "put": {
+                "summary": "Log out user, clear access token",
+                "responses": {
+                    "200": {
+                        "description": "User logged out, access token cleared"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "responses": {
+            "InvalidRequest": {
+                "description": "Invalid request properties",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/Error"
+                        }
+                    }
+                }
+            },
+            "InternalServerError": {
+                "description": "Unexpected internal server error",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/Error"
+                        },
+                        "example": {
+                    "msg": "Service is currenly unavailable"
+                }
+                    }
+                }
+            }
+        },
+        "schemas": {
+            "AccessToken": {
+                "description": "Access token header",
+                "type": "string",
+                "example": "access_token=abc123; Path=/; HttpOnly; Secure; SameSite=None; Domain=example.com"
+            },
+            "Error": {
+                "description": "Response object in case of an occured error",
+                "type": "object",
+                "required": [
+                    "msg"
+                ],
+                "properties": {
+                    "msg": {
+                        "description": "Error message, must contain user friendly content",
+                        "type": "string"
+                    }
+                },
+                "example": {
+                    "msg": "Service is currenly unavailable"
+                }
+            }
+        }
+    }
+}
