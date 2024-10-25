@@ -13,7 +13,7 @@ rootDirectory = collections
 [config.relations.collections.metaData]
 
 [config.relations.apiDefinition]
-files[] = {"path":"collections/index.json","metaData":{}}
+files[] = {"path":"docs/index.json","metaData":{}}
 
 [config.relations.apiDefinition.metaData]
 type = openapi:3
