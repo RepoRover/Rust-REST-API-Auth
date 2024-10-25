@@ -5,10 +5,26 @@
         "title": "Rust Authentication API",
         "description": "User authentication"
     },
+    "servers": [
+        {
+            "url": "https://hello.com"
+        }
+    ],
     "paths": {
         "/signup": {
             "post": {
-                "summary": "Create new user",
+                "summary": "Create new user.",
+                "requestBody": {
+                    "description": "In order for user to sign up he/she must provide valid email, password and confirmed password.",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SignUpSchema"
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "201": {
                         "description": "User created, access token granted",
@@ -16,7 +32,8 @@
                             "Set-Cookie": {
                                 "description": "Sets access token cookie for user authentication",
                                 "schema": {
-                                    "$ref": "#/components/schemas/AccessToken"
+                                    "type": "string",
+                                    "example": "access_token=123abc; Path=/; HttpOnly; Secure; SameSite=None; Domain=example.com"
                                 }
                             }
                         }
@@ -30,6 +47,9 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/Error"
+                                },
+                                "example": {
+                                    "msg": "User with this email already exists. Use different email or log in with existing account"
                                 }
                             }
                         }
@@ -43,14 +63,26 @@
         "/login": {
             "put": {
                 "summary": "Log user in",
+                "requestBody": {
+                    "description": "In order for user to log in to his/her existing account he/she must provide account email and password.",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/LogInSchema"
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "200": {
-                        "description": "User logged in, access token granted",
+                        "description": "User logged in, access token granted.",
                         "headers": {
                             "Set-Cookie": {
-                                "description": "Sets access token cookie for user authentication",
+                                "description": "Sets access token cookie for user authentication.",
                                 "schema": {
-                                    "$ref": "#/components/schemas/AccessToken"
+                                    "type": "string",
+                                    "example": "access_token=123abc; Path=/; HttpOnly; Secure; SameSite=None; Domain=example.com"
                                 }
                             }
                         }
@@ -59,7 +91,7 @@
                         "$ref": "#/components/responses/InvalidRequest"
                     },
                     "404": {
-                        "description": "Set if any of provided user credentials is incorrect",
+                        "description": "Set if any of provided user credentials is incorrect.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -76,12 +108,34 @@
                     }
                 }
             }
+        },
+        "/logout": {
+            "put": {
+                "summary": "Log user out",
+                "description": "Route ensures that `access_token` stored in client cookie is cleared.",
+                "security": [
+                    {
+                        "AccessTokenAuthCookie": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User successfuly logged out."
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/InvalidRequest"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/InternalServerError"
+                    }
+                }
+            }
         }
     },
     "components": {
         "responses": {
             "InvalidRequest": {
-                "description": "Invalid request properties",
+                "description": "This type of response is sent when client provides an invalid request i.e. request body/headers miss some required properties for that particular route.",
                 "content": {
                     "application/json": {
                         "schema": {
@@ -107,21 +161,70 @@
                 }
             }
         },
+        "securitySchemes": {
+            "AccessTokenAuthCookie": {
+                "type": "apiKey",
+                "in": "cookie",
+                "name": "access_token",
+                "description": "Access token cookie. Configured so that it is not accesible from client side scripts (HttpOnly), only sent through secure channels (Secure), issued to third party web-site (SameSite=None), sent to a particular third-party web-site domain and makes it visible to all the subdomains i.e. `app.example.com` (Domain=example.com) and make this cookie to be sent with all the requests to the site that issued cookie in first place (Path=/)."
+            }
+        },
         "schemas": {
-            "AccessToken": {
-                "description": "Access token header",
-                "type": "string",
-                "example": "access_token=abc123; Path=/; HttpOnly; Secure; SameSite=None; Domain=example.com"
+            "SignUpSchema": {
+                "description": "Request body provided when user requests to sign up for application.",
+                "type": "object",
+                "required": [
+                    "email",
+                    "pwd",
+                    "pwdc"
+                ],
+                "properties": {
+                    "email": {
+                        "description": "User's account email address.",
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "pwd": {
+                        "description": "User's account password.",
+                        "type": "string",
+                        "format": "password"
+                    },
+                    "pwdc": {
+                        "description": "A confirmation of the user's password.",
+                        "type": "string",
+                        "format": "password"
+                    }
+                }
+            },
+            "LogInSchema": {
+                "description": "Request body provided when user requests to log in to application with existing account.",
+                "type": "object",
+                "required": [
+                    "email",
+                    "pwd"
+                ],
+                "properties": {
+                    "email": {
+                        "description": "User's account email address.",
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "pwd": {
+                        "description": "User's account password.",
+                        "type": "string",
+                        "format": "password"
+                    }
+                }
             },
             "Error": {
-                "description": "Response object in case of an occured error",
+                "description": "Response object in case of an occured error.",
                 "type": "object",
                 "required": [
                     "msg"
                 ],
                 "properties": {
                     "msg": {
-                        "description": "Error message, must contain user friendly content",
+                        "description": "Error message, must contain user friendly content.",
                         "type": "string"
                     }
                 },
@@ -130,5 +233,6 @@
                 }
             }
         }
-    }
+    },
+    "security": []
 }
