@@ -25,7 +25,7 @@ async fn main() -> std::io::Result<()> {
     let server: actix_web::dev::Server = HttpServer::new(|| {
         App::new()
             .route("/signup", web::post().to(signup))
-            .route("/login", web::post().to(login))
+            .route("/login", web::put().to(login))
             .route("/logout", web::put().to(logout))
             .route("/user", web::delete().to(delete_user))
             .route("/session", web::put().to(renew_user_session))
