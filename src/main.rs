@@ -1,11 +1,20 @@
+mod app_var;
+
+use app_var::{environment::load_app_env, strings};
+
 use actix_web::{web, App, HttpServer, Responder};
+// use std::env;
 
 struct AppStateData {
     db_connection: String,
 }
 
 async fn signup(app_state_data: web::Data<AppStateData>) -> impl Responder {
-    format!("signup, {}", app_state_data.db_connection)
+    format!(
+        "signup, {}, and this is from strings: {}",
+        app_state_data.db_connection,
+        strings::HELLO_MESSAGE
+    )
 }
 
 async fn login() -> impl Responder {
@@ -26,13 +35,14 @@ async fn renew_user_session() -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    let db_url: &str = "";
-    let pool = sqlx::PgPool::connect(db_url).await.unwrap();
-    println!("POOL: {:?}", pool);
+    load_app_env();
+    // let db_url: &str = "";
+    // let pool = sqlx::PgPool::connect(db_url).await.unwrap();
+    // println!("POOL: {:?}", pool);
 
-    let res = sqlx::migrate!("./migrations/main").run(&pool).await;
+    // let res = sqlx::migrate!("./migrations/main").run(&pool).await;
 
-    println!("MIGRATIONS: {:?}", res);
+    // println!("MIGRATIONS: {:?}", res);
 
     let server: actix_web::dev::Server = HttpServer::new(|| {
         App::new()

@@ -1294,7 +1294,7 @@ name = "rust_rest_api_auth"
 version = "0.1.0"
 dependencies = [
  "actix-web",
- "serde",
+ "dotenvy",
  "sqlx",
 ]
 
