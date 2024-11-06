@@ -1,26 +1,42 @@
+pub mod constants;
+
+use constants::*;
 use std::collections::HashSet;
 use std::env;
 
-const ENV_VAR_PREFIX: &str = "RRAA_";
-const REQUIRED_ENV_VARS: &[&str] = &["DB_URL"];
+use crate::controller::{AppError, ErrorKind, Result};
 
-pub fn load_app_env() {
+pub fn get_var_name(constant: &str) -> String {
+    format!("{}{}", ENV_VAR_PREFIX, constant)
+}
+
+pub fn load_app_env() -> Result<()> {
     println!("Loading environment file contents...");
 
-    load_env_file("./environment/.env");
+    load_env_file(ENV_FILE_PATH)?;
 
     let provided_vars: HashSet<String> = collect_provided_vars();
 
-    check_required_vars(&provided_vars);
+    check_required_vars(&provided_vars)?;
     print_extra_vars(&provided_vars);
 
     println!("All required environment variables are set.");
+
+    Ok(())
 }
 
-fn load_env_file(path: &str) {
+fn load_env_file(path: &str) -> Result<()> {
     if let Err(err) = dotenvy::from_filename(path) {
-        eprintln!("Warning: Could not load .env file: {:?}", err);
+        return Err(AppError::new(
+            ErrorKind::InvalidEnvFile(format!(
+                "Environment file is invalid at provided path: {}.",
+                path
+            )),
+            Some(Box::new(err)),
+        ));
     }
+
+    Ok(())
 }
 
 fn collect_provided_vars() -> HashSet<String> {
@@ -35,7 +51,7 @@ fn collect_provided_vars() -> HashSet<String> {
         .collect()
 }
 
-fn check_required_vars(provided_vars: &HashSet<String>) {
+fn check_required_vars(provided_vars: &HashSet<String>) -> Result<()> {
     let missing_vars: Vec<&str> = REQUIRED_ENV_VARS
         .iter()
         .filter(|&&req_var| !provided_vars.contains(req_var))
@@ -43,12 +59,16 @@ fn check_required_vars(provided_vars: &HashSet<String>) {
         .collect();
 
     if !missing_vars.is_empty() {
-        eprintln!(
-            "Error: Missing required environment variables: {:?}",
-            missing_vars.join(", ")
-        );
-        std::process::exit(1);
+        return Err(AppError::new(
+            ErrorKind::MissingEnvVars(format!(
+                "Missing required environment variables: {}",
+                missing_vars.join(", ")
+            )),
+            None,
+        ));
     }
+
+    Ok(())
 }
 
 fn print_extra_vars(provided_vars: &HashSet<String>) {
@@ -60,7 +80,7 @@ fn print_extra_vars(provided_vars: &HashSet<String>) {
 
     if !extra_vars.is_empty() {
         println!(
-            "Note: Extra environment variables with prefix '{}' found: {:?}",
+            "Note: Extra environment variables with prefix '{}' found: {}",
             ENV_VAR_PREFIX,
             extra_vars.join(", ")
         );
