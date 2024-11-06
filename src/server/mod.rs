@@ -5,7 +5,7 @@ use actix_web::{dev::Server, web, App, HttpServer};
 use std::env;
 
 pub async fn run() -> Result<()> {
-    load_app_env()?;
+    load_app_env(ENV_FILE_PATH)?;
 
     let address = format!(
         "{}:{}",

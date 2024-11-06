@@ -10,10 +10,10 @@ pub fn get_var_name(constant: &str) -> String {
     format!("{}{}", ENV_VAR_PREFIX, constant)
 }
 
-pub fn load_app_env() -> Result<()> {
+pub fn load_app_env(path: &str) -> Result<()> {
     println!("Loading environment file contents...");
 
-    load_env_file(ENV_FILE_PATH)?;
+    load_env_file(path)?;
 
     let provided_vars: HashSet<String> = collect_provided_vars();
 
