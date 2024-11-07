@@ -16,6 +16,7 @@ impl AppError {
 pub enum ErrorKind {
     InvalidEnvFile(String),
     MissingEnvVars(String),
+    ExtraEnvVars(String),
     HttpServerFail,
     AddressBindingFail(String),
 }

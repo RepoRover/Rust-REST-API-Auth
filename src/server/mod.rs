@@ -1,5 +1,5 @@
 use crate::controller::{AppError, ErrorKind, Result};
-use crate::var::environment::{constants::*, get_var_name, load_app_env};
+use crate::var::environment::{constants::*, load_app_env};
 
 use actix_web::{dev::Server, web, App, HttpServer};
 use std::env;
@@ -7,11 +7,9 @@ use std::env;
 pub async fn run() -> Result<()> {
     load_app_env(ENV_FILE_PATH)?;
 
-    let address = format!(
-        "{}:{}",
-        env::var(get_var_name(APP_ADDRESS)).unwrap(),
-        env::var(get_var_name(APP_PORT)).unwrap()
-    );
+    // TODO: Construct DB url
+
+    let address: String = construct_server_address(ENV_VAR_PREFIX, APP_ADDRESS, APP_PORT);
 
     let server: Server = match HttpServer::new(|| {
         App::new().app_data(web::Data::new(AppStateData {
@@ -46,6 +44,22 @@ pub async fn run() -> Result<()> {
     }
 
     Ok(())
+}
+
+// TODO: test this
+fn construct_server_address(
+    env_var_prefix: &str,
+    address_env_var_name: &str,
+    port_env_var_name: &str,
+) -> String {
+    let address_var_name_constructed = format!("{}{}", env_var_prefix, address_env_var_name);
+    let port_var_name_constructed = format!("{}{}", env_var_prefix, port_env_var_name);
+
+    format!(
+        "{}:{}",
+        env::var(address_var_name_constructed).unwrap(),
+        env::var(port_var_name_constructed).unwrap()
+    )
 }
 
 // ///////////////////////////
