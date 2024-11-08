@@ -1,10 +1,6 @@
-mod controller;
-mod server;
-mod var;
-
 use std::process;
 
-use server::run;
+use rust_rest_api_auth_lib::server::run;
 
 #[actix_web::main]
 async fn main() {

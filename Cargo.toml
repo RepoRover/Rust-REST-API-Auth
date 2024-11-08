@@ -3,6 +3,12 @@ name = "rust_rest_api_auth"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "rust_rest_api_auth_lib"
+path = "src/lib.rs"
+crate-type = ["rlib"]
+
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
