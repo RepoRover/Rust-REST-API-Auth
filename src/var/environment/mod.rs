@@ -52,14 +52,10 @@ pub fn load_app_env(path: &str) -> Result<()> {
 /// Returns AppError with InvalidEnvFile error kind followed by origianl error from dotenvy.
 fn load_env_file(path: &str) -> Result<()> {
     dotenvy::from_filename(path).map_err(|err| {
-        AppError::new(
-            ErrorKind::InvalidEnvFile(format!(
-                "Environment file is invalid at provided path: {}.",
-                path
-            )),
-            Some(Box::new(err)),
-        )
+        let err_msg: String = format!("Environment file is invalid at provided path: {}.", path);
+        AppError::new(ErrorKind::InvalidEnvFile(err_msg), Some(Box::new(err)))
     })?;
+
     Ok(())
 }
 
@@ -88,7 +84,7 @@ where
         .collect::<HashSet<String>>()
 }
 
-// TODO: Write unit test and docs
+// TODO: Write docs
 fn check_env(
     required_vars: &[&str],
     provided_vars: &HashSet<String>,
@@ -102,15 +98,17 @@ fn check_env(
     let missing_vars: HashSet<String> = find_missing(&full_var_names, provided_vars);
 
     if !missing_vars.is_empty() {
+        let mut sorted_missing: Vec<String> = missing_vars.into_iter().collect::<Vec<String>>();
+
+        sorted_missing.sort();
+
+        let error_message: String = format!(
+            "Missing required environment variables: {}",
+            sorted_missing.join(", ")
+        );
+
         return Err(AppError::new(
-            ErrorKind::MissingEnvVars(format!(
-                "Missing required environment variables: {}",
-                missing_vars
-                    .iter()
-                    .cloned()
-                    .collect::<Vec<String>>()
-                    .join(", ")
-            )),
+            ErrorKind::MissingEnvVars(error_message),
             None,
         ));
     }
@@ -138,7 +136,7 @@ fn print_extra_vars(
         .collect();
 
     if !extra_vars.is_empty() {
-        let err_msg = format!(
+        let err_msg: String = format!(
             "Extra variables not in REQUIRED_ENV_VARS detected: {}.",
             extra_vars.join(", ")
         );
@@ -212,7 +210,9 @@ mod tests {
 
         let required_vars: [&str; 2] = ["VAR_1", "VAR_2"];
         let provided_vars: HashSet<String> = HashSet::from([[app_var_prefix, "VAR_1"].concat()]);
-        let missing_vars: [String; 1] = [[app_var_prefix, "VAR_2"].concat()];
+        let mut missing_vars: [String; 1] = [[app_var_prefix, "VAR_2"].concat()];
+
+        missing_vars.sort();
 
         let expect: Result<()> = Err(AppError::new(
             ErrorKind::MissingEnvVars(format!(
@@ -232,10 +232,12 @@ mod tests {
 
         let required_vars: [&str; 3] = ["VAR_1", "VAR_2", "VAR_3"];
         let provided_vars: HashSet<String> = HashSet::from([[app_var_prefix, "VAR_2"].concat()]);
-        let missing_vars: [String; 2] = [
+        let mut missing_vars: [String; 2] = [
             [app_var_prefix, "VAR_1"].concat(),
             [app_var_prefix, "VAR_3"].concat(),
         ];
+
+        missing_vars.sort();
 
         let expect: Result<()> = Err(AppError::new(
             ErrorKind::MissingEnvVars(format!(
@@ -255,10 +257,12 @@ mod tests {
 
         let required_vars: [&str; 2] = ["VAR_1", "VAR_2"];
         let provided_vars: HashSet<String> = HashSet::from([]);
-        let missing_vars: [String; 2] = [
+        let mut missing_vars: [String; 2] = [
             [app_var_prefix, "VAR_1"].concat(),
             [app_var_prefix, "VAR_2"].concat(),
         ];
+
+        missing_vars.sort();
 
         let expect: Result<()> = Err(AppError::new(
             ErrorKind::MissingEnvVars(format!(

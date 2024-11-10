@@ -14,7 +14,7 @@ where
 {
     required_collection
         .iter()
-        .filter(|item| !provided_collection.contains(item))
+        .filter(|&item| !provided_collection.contains(item))
         .cloned()
         .collect()
 }
